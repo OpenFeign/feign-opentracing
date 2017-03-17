@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import feign.Feign;
+import feign.FeignException;
 import feign.Headers;
 import feign.RequestLine;
 import feign.Retryer;
@@ -136,10 +137,10 @@ public class TracingClientTest {
         {
             StringEntityRequest entity =
                     feign.<StringEntityRequest>newInstance(new Target.HardCodedTarget(StringEntityRequest.class,
-                    "http://www.foo.bar/baz"));
+                    "http://www.abcfoobar.bar/baz"));
             try {
                 entity.get();
-            } catch (Exception ex) {
+            } catch (FeignException ex) {
                 //ok
             }
         }
@@ -147,8 +148,8 @@ public class TracingClientTest {
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         // there are two spans due to retry mechanism
         Assert.assertEquals(2, mockSpans.size());
-        assertErrorSpan(mockSpans.get(0), "http://www.foo.bar/baz");
-        assertErrorSpan(mockSpans.get(1), "http://www.foo.bar/baz");
+        assertErrorSpan(mockSpans.get(0), "http://www.abcfoobar.bar/baz");
+        assertErrorSpan(mockSpans.get(1), "http://www.abcfoobar.bar/baz");
     }
 
     public static void assertErrorSpan(MockSpan mockSpan, String url) {

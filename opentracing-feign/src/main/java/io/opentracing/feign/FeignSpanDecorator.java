@@ -70,7 +70,7 @@ public interface FeignSpanDecorator {
 
 
         public static Map<String, Object> errorLogs(Exception ex) {
-            Map<String, Object> errorLogs = new HashMap<>();
+            Map<String, Object> errorLogs = new HashMap<>(2);
             errorLogs.put("event", Tags.ERROR.getKey());
             errorLogs.put("error.object", ex);
 

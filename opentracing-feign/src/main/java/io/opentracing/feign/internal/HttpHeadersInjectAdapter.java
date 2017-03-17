@@ -2,6 +2,7 @@ package io.opentracing.feign.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -17,6 +18,10 @@ public class HttpHeadersInjectAdapter implements TextMap {
     private Map<String, Collection<String>> headers;
 
     public HttpHeadersInjectAdapter(Map<String, Collection<String>> headers) {
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+
         this.headers = headers;
     }
 

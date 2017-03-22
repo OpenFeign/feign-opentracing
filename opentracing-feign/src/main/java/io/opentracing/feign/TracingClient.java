@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import feign.Client;
 import feign.Request;
@@ -26,6 +28,7 @@ import io.opentracing.tag.Tags;
  * @author Pavol Loffay
  */
 public class TracingClient implements Client {
+    private static final Logger log = Logger.getLogger(TracingClient.class.getName());
 
     private Tracer tracer;
     private List<FeignSpanDecorator> spanDecorators;
@@ -58,20 +61,33 @@ public class TracingClient implements Client {
             span = spanBuilder.start();
 
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
-                spanDecorator.onRequest(request, options, span);
+                try {
+                    spanDecorator.onRequest(request, options, span);
+                } catch (Exception ex) {
+                    log.log(Level.SEVERE, "Exception during decorating span", ex);
+                }
             }
 
             request = inject(span.context(), request);
             Response response = delegate.execute(request, options);
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
-                spanDecorator.onResponse(response, options, span);
+                try {
+                    spanDecorator.onResponse(response, options, span);
+                } catch (Exception ex) {
+                    log.log(Level.SEVERE, "Exception during decorating span", ex);
+                }
             }
 
             return response;
         } catch (Exception ex) {
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
-                spanDecorator.onError(ex, request, span);
+                try {
+                    spanDecorator.onError(ex, request, span);
+                } catch (Exception exDecorator) {
+                    log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                }
             }
+
             throw ex;
         } finally {
             if (span != null) {

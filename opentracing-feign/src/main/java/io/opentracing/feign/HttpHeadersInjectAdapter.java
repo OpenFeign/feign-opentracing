@@ -1,4 +1,4 @@
-package io.opentracing.feign.internal;
+package io.opentracing.feign;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import io.opentracing.propagation.TextMap;
  *
  * @author Pavol Loffay
  */
-public class HttpHeadersInjectAdapter implements TextMap {
+class HttpHeadersInjectAdapter implements TextMap {
 
     private Map<String, Collection<String>> headers;
 

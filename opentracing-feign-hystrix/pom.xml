@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>opentracing-feign</artifactId>
+  <artifactId>opentracing-feign-hystrix</artifactId>
 
   <dependencies>
     <dependency>
@@ -17,14 +17,13 @@
       <artifactId>opentracing-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-spanmanager</artifactId>
-      <version>${version.io.opentracing.contrib-opentracing-spanmanager}</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>opentracing-feign</artifactId>
+      <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.github.openfeign</groupId>
-      <artifactId>feign-core</artifactId>
+      <artifactId>feign-hystrix</artifactId>
       <version>${version.io.github.openfeign}</version>
     </dependency>
 
@@ -45,26 +44,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.github.openfeign</groupId>
-      <artifactId>feign-okhttp</artifactId>
-      <version>${version.io.github.openfeign}</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>opentracing-feign</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>${version.maven-jar-plugin}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

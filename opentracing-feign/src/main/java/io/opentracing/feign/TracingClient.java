@@ -3,6 +3,7 @@ package io.opentracing.feign;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,6 @@ import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spanmanager.DefaultSpanManager;
 import io.opentracing.contrib.spanmanager.SpanManager;
-import io.opentracing.feign.internal.HttpHeadersInjectAdapter;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 
@@ -35,6 +35,14 @@ public class TracingClient implements Client {
     private SpanManager spanManager = DefaultSpanManager.getInstance();
 
     private Client delegate;
+
+    /**
+     * @param delegate delegating client
+     * @param tracer tracer
+     */
+    public TracingClient(Client delegate, Tracer tracer) {
+        this(delegate, tracer, Collections.<FeignSpanDecorator>singletonList(new FeignSpanDecorator.StandardTags()));
+    }
 
     /**
      * @param delegate delegating client

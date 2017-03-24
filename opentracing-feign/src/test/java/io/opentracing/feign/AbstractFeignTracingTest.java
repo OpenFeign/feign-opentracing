@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import feign.Feign;
-import feign.FeignException;
 import feign.Headers;
 import feign.RequestLine;
 import feign.Retryer;
@@ -29,34 +28,37 @@ import okhttp3.mockwebserver.RecordedRequest;
 /**
  * @author Pavol Loffay
  */
-public class TracingClientTest {
+public abstract class AbstractFeignTracingTest {
 
-    private static final int NUMBER_OF_RETRIES = 2;
+    protected static final int NUMBER_OF_RETRIES = 2;
 
-    private MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
-    private MockWebServer mockWebServer = new MockWebServer();
-    private Feign feign;
+    protected MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+    protected MockWebServer mockWebServer = new MockWebServer();
+    protected Feign feign = getClient();
 
-    @Before
-    public void before() throws IOException {
-        mockTracer.reset();
-        mockWebServer.start();
-        feign = Feign.builder()
+    protected Feign getClient() {
+        return Feign.builder()
                 .client(new TracingClient(new OkHttpClient(), mockTracer,
                         Collections.<FeignSpanDecorator>singletonList(new FeignSpanDecorator.StandardTags())))
                 .retryer(new Retryer.Default(100, SECONDS.toMillis(1), NUMBER_OF_RETRIES))
                 .build();
     }
 
-    private interface StringEntityRequest {
-        @RequestLine("GET")
-        @Headers("Content-Type: application/json")
-        String get();
+    @Before
+    public void before() throws IOException {
+        mockTracer.reset();
+        mockWebServer.start();
     }
 
     @After
     public void after() throws IOException {
         mockWebServer.close();
+    }
+
+    protected interface StringEntityRequest {
+        @RequestLine("GET")
+        @Headers("Content-Type: application/json")
+        String get();
     }
 
     @Test
@@ -110,10 +112,8 @@ public class TracingClientTest {
     @Test
     public void testParentSpanFromSpanManager() throws InterruptedException {
         {
-            MockSpan parentSpan = mockTracer.buildSpan("foo")
-                    .start();
-
-            DefaultSpanManager.getInstance().activate(parentSpan);
+            MockSpan parent = mockTracer.buildSpan("parent").start();
+            DefaultSpanManager.getInstance().activate(parent);
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(200));
@@ -122,8 +122,7 @@ public class TracingClientTest {
                     entity = feign.<StringEntityRequest>newInstance(new Target.HardCodedTarget(StringEntityRequest.class,
                     mockWebServer.url("/foo").toString()));
             entity.get();
-
-            parentSpan.finish();
+            parent.finish();
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
@@ -140,7 +139,7 @@ public class TracingClientTest {
                     "http://www.abcfoobar.bar/baz"));
             try {
                 entity.get();
-            } catch (FeignException ex) {
+            } catch (Exception ex) {
                 //ok
             }
         }

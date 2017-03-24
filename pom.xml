@@ -36,6 +36,7 @@
 
   <modules>
     <module>opentracing-feign</module>
+    <module>opentracing-feign-hystrix</module>
   </modules>
 
   <properties>
@@ -53,6 +54,7 @@
     <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
     <version.maven-source-plugin>3.0.1</version.maven-source-plugin>
     <version.maven-javadoc-plugin>2.10.4</version.maven-javadoc-plugin>
+    <version.maven-jar-plugin>3.0.2</version.maven-jar-plugin>
     <version.io.zikin.centralsync-maven-plugin>0.1.0</version.io.zikin.centralsync-maven-plugin>
   </properties>
 

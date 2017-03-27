@@ -1,16 +1,25 @@
 [![Build Status][ci-img]][ci] [![Released Version][maven-img]][maven]
 
-# OpenTracing Feign Client Instrumentation
-OpenTracing instrumentation for Feign.
+# OpenTracing Feign Instrumentation
+OpenTracing instrumentation for Feign client. This instrumentation adds client span for each outgoing request.
+Repository currently uses [SpanManager](https://github.com/opentracing-contrib/java-spanmanager) to link 
+with a parent span.
 
 ## Configuration & Usage
+
+### Feign
 ```java
 Feign feign = Feign.builder()
-    .client(new TracingClient(feignCompatibleClient, tracer,
-        Arrays.asList(new FeignSpanDecorator.StandardTags())))
+    .client(new TracingClient(feignCompatibleClient, tracer, Arrays.asList(new FeignSpanDecorator.StandardTags())))
     .build();
 
 ```
+
+### HystrixFeign
+```java
+TracingConcurrencyStrategy.register();
+```
+and create feign client like it is described above.
 
 ## Development
 ```shell
@@ -20,7 +29,7 @@ Feign feign = Feign.builder()
 ## Release
 Follow instructions in [RELEASE](RELEASE.md)
 
-   [ci-img]: https://travis-ci.org/opentracing-contrib/java-feign.svg?branch=master
-   [ci]: https://travis-ci.org/opentracing-contrib/java-feign
-   [maven-img]: https://img.shields.io/maven-central/v/io.opentracing.contrib/opentracing-feign.svg?maxAge=2592000
-   [maven]: http://search.maven.org/#search%7Cga%7C1%7Copentracing-feign
+   [ci-img]: https://travis-ci.org/OpenFeign/feign-opentracing.svg?branch=master
+   [ci]: https://travis-ci.org/OpenFeign/feign-opentracing
+   [maven-img]: https://img.shields.io/maven-central/v/io.github.feign/feign-opentracing.svg?maxAge=2592000
+   [maven]: http://search.maven.org/#search%7Cga%7C1%7Cfeign-opentracing

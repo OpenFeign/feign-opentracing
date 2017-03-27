@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.opentracing.contrib</groupId>
-  <artifactId>opentracing-feign-parent</artifactId>
+  <groupId>io.github.openfeign</groupId>
+  <artifactId>feign-opentracing-parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -30,13 +30,13 @@
     <developer>
       <id>pavolloffay</id>
       <name>Pavol Loffay</name>
-      <email>p.loffay@gmail.com</email>
+      <email>ploffay@redhat.com</email>
     </developer>
   </developers>
 
   <modules>
-    <module>opentracing-feign</module>
-    <module>opentracing-feign-hystrix</module>
+    <module>feign-opentracing</module>
+    <module>feign-hystrix-opentracing</module>
   </modules>
 
   <properties>

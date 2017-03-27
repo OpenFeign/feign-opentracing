@@ -11,8 +11,8 @@ cache:
 
 before_install:
   # allocate commits to CI, not the owner of the deploy key
-  - git config user.name "opentracingci"
-  - git config user.email "opentracingci+opentracing@googlegroups.com"
+  - git config user.name "GH_USER"
+  - git config user.email "$GH_USER_EMAIL"
 
   # setup https authentication credentials, used by ./mvnw release:prepare
   - git config credential.helper "store --file=.git/credentials"
@@ -31,6 +31,8 @@ branches:
 
 env:
   global:
+  # Ex. travis encrypt -r org/repo GH_USER=your_github_account
+  # Ex. travis encrypt -r org/repo GH_USER_EMAIL=for_github@domain.com
   # Ex. travis encrypt -r org/repo GH_TOKEN=XXX-https://github.com/settings/tokens-XXX
   # Ex. travis encrypt -r org/repo SONATYPE_USER=your_sonatype_account
   # Ex. travis encrypt -r org/repo SONATYPE_PASSWORD=your_sonatype_password

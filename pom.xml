@@ -9,12 +9,12 @@
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>OpenTracing OpenFeign integration</description>
-  <url>http://github.com/opentracing-contrib/java-feign</url>
+  <url>https://github.com/OpenFeign/feign-opentracing</url>
 
   <scm>
-    <url>https://github.com/opentracing-contrib/java-feign</url>
-    <connection>scm:git:https://github.com/opentracing-contrib/java-feign.git</connection>
-    <developerConnection>scm:git:https://github.com/opentracing-contrib/java-feign.git</developerConnection>
+    <url>https://github.com/OpenFeign/feign-opentracing</url>
+    <connection>scm:git:https://github.com/OpenFeign/feign-opentracing.git</connection>
+    <developerConnection>scm:git:https://github.com/OpenFeign/feign-opentracing.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -82,7 +82,7 @@
   <distributionManagement>
     <repository>
       <id>bintray</id>
-      <url>https://api.bintray.com/maven/opentracing/maven/opentracing-feign/;publish=1</url>
+      <url>https://api.bintray.com/maven/openfeign/maven/feign-opentracing/;publish=1</url>
     </repository>
     <snapshotRepository>
       <id>jfrog-snapshots</id>
@@ -107,9 +107,9 @@
         <artifactId>centralsync-maven-plugin</artifactId>
         <version>${version.io.zikin.centralsync-maven-plugin}</version>
         <configuration>
-          <subject>opentracing</subject>
+          <subject>openfeign</subject>
           <repo>maven</repo>
-          <packageName>opentracing-feign</packageName>
+          <packageName>feign-opentracing</packageName>
         </configuration>
       </plugin>
     </plugins>

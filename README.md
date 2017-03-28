@@ -1,7 +1,7 @@
 [![Build Status][ci-img]][ci] [![Released Version][maven-img]][maven]
 
 # OpenTracing Feign Instrumentation
-OpenTracing instrumentation for Feign client. This instrumentation adds client span for each outgoing request.
+OpenTracing instrumentation for Feign client. This instrumentation creates client span for each outgoing request.
 Repository currently uses [SpanManager](https://github.com/opentracing-contrib/java-spanmanager) to link 
 with a parent span.
 
@@ -10,7 +10,7 @@ with a parent span.
 ### Feign
 ```java
 Feign feign = Feign.builder()
-    .client(new TracingClient(feignCompatibleClient, tracer, Arrays.asList(new FeignSpanDecorator.StandardTags())))
+    .client(new TracingClient(feignCompatibleClient, tracer))
     .build();
 
 ```

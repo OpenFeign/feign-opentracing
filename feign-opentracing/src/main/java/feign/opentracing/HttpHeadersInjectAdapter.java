@@ -2,7 +2,6 @@ package feign.opentracing;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -19,7 +18,7 @@ class HttpHeadersInjectAdapter implements TextMap {
 
     public HttpHeadersInjectAdapter(Map<String, Collection<String>> headers) {
         if (headers == null) {
-            headers = new HashMap<>();
+            throw new NullPointerException("Headers should not be null!");
         }
 
         this.headers = headers;

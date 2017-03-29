@@ -4,6 +4,7 @@
 .mtj.tmp/
 
 # Package Files #
+*.jar
 *.war
 *.ear
 
@@ -11,3 +12,6 @@
 hs_err_pid*
 
 target
+
+# includes
+!.mvn/wrapper/maven-wrapper.jar

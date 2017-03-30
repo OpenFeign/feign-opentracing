@@ -31,5 +31,5 @@ Follow instructions in [RELEASE](RELEASE.md)
 
    [ci-img]: https://travis-ci.org/OpenFeign/feign-opentracing.svg?branch=master
    [ci]: https://travis-ci.org/OpenFeign/feign-opentracing
-   [maven-img]: https://img.shields.io/maven-central/v/io.github.feign/feign-opentracing.svg?maxAge=2592000
+   [maven-img]: https://img.shields.io/maven-central/v/io.github.feign.opentracing/feign-opentracing.svg?maxAge=2592000
    [maven]: http://search.maven.org/#search%7Cga%7C1%7Cfeign-opentracing

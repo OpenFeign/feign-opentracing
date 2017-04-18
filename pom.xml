@@ -46,7 +46,7 @@
 
     <version.com.squareup.okhttp3-mockwebserver>3.6.0</version.com.squareup.okhttp3-mockwebserver>
     <version.io.github.openfeign>9.4.0</version.io.github.openfeign>
-    <version.io.opentracing>0.20.10</version.io.opentracing>
+    <version.io.opentracing>0.21.0</version.io.opentracing>
     <version.io.opentracing.contrib-opentracing-spanmanager>0.0.3</version.io.opentracing.contrib-opentracing-spanmanager>
     <version.junit>4.12</version.junit>
 

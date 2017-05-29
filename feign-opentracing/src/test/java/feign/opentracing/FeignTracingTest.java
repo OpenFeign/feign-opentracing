@@ -5,7 +5,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
+import org.awaitility.Awaitility;
+import org.hamcrest.core.IsEqual;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,10 +20,11 @@ import feign.RequestLine;
 import feign.Retryer;
 import feign.Target;
 import feign.okhttp.OkHttpClient;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.ActiveSpan;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -28,11 +32,11 @@ import okhttp3.mockwebserver.RecordedRequest;
 /**
  * @author Pavol Loffay
  */
-public abstract class AbstractFeignTracingTest {
+public class FeignTracingTest {
 
     protected static final int NUMBER_OF_RETRIES = 2;
 
-    protected MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+    protected MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(), MockTracer.Propagator.TEXT_MAP);
     protected MockWebServer mockWebServer = new MockWebServer();
     protected Feign feign = getClient();
 
@@ -112,8 +116,8 @@ public abstract class AbstractFeignTracingTest {
     @Test
     public void testParentSpanFromSpanManager() throws InterruptedException {
         {
-            MockSpan parent = mockTracer.buildSpan("parent").start();
-            DefaultSpanManager.getInstance().activate(parent);
+            ActiveSpan activeSpan = mockTracer.buildSpan("parent")
+                    .startActive();
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(200));
@@ -122,8 +126,9 @@ public abstract class AbstractFeignTracingTest {
                     entity = feign.<StringEntityRequest>newInstance(new Target.HardCodedTarget(StringEntityRequest.class,
                     mockWebServer.url("/foo").toString()));
             entity.get();
-            parent.finish();
+            activeSpan.deactivate();
         }
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(2, mockSpans.size());
@@ -162,5 +167,14 @@ public abstract class AbstractFeignTracingTest {
         Assert.assertEquals(1, mockSpan.logEntries().size());
         Assert.assertEquals(Tags.ERROR.getKey(), mockSpan.logEntries().get(0).fields().get("event"));
         Assert.assertNotNull(mockSpan.logEntries().get(0).fields().get("error.object"));
+    }
+
+    private Callable<Integer> reportedSpansSize() {
+        return new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return mockTracer.finishedSpans().size();
+            }
+        };
     }
 }

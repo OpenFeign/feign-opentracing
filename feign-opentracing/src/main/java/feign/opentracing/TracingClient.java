@@ -13,11 +13,9 @@ import java.util.logging.Logger;
 import feign.Client;
 import feign.Request;
 import feign.Response;
-import io.opentracing.Span;
+import io.opentracing.ActiveSpan;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 
@@ -32,7 +30,6 @@ public class TracingClient implements Client {
 
     private Tracer tracer;
     private List<FeignSpanDecorator> spanDecorators;
-    private SpanManager spanManager = DefaultSpanManager.getInstance();
 
     private Client delegate;
 
@@ -57,16 +54,11 @@ public class TracingClient implements Client {
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
-        Span span = null;
+        ActiveSpan span = null;
         try {
-            Tracer.SpanBuilder spanBuilder = tracer.buildSpan(request.method())
-                    .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
-
-            if (spanManager.current().getSpan() != null) {
-                spanBuilder.asChildOf(spanManager.current().getSpan());
-            }
-
-            span = spanBuilder.start();
+            span = tracer.buildSpan(request.method())
+                    .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
+                    .startActive();
 
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
                 try {
@@ -99,7 +91,7 @@ public class TracingClient implements Client {
             throw ex;
         } finally {
             if (span != null) {
-                span.finish();
+                span.deactivate();
             }
         }
     }

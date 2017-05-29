@@ -10,18 +10,18 @@ import feign.Client;
 import feign.Feign;
 import feign.Retryer;
 import feign.hystrix.HystrixFeign;
-import feign.opentracing.AbstractFeignTracingTest;
+import feign.opentracing.FeignTracingTest;
 import feign.opentracing.TracingClient;
 
 /**
  * @author Pavol Loffay
  */
-public class HystrixFeignTracingTest extends AbstractFeignTracingTest {
+public class HystrixFeignTracingTest extends FeignTracingTest {
 
     @Override
     public void before() throws IOException {
         HystrixPlugins.reset();
-        TracingConcurrencyStrategy.register();
+        TracingConcurrencyStrategy.register(mockTracer);
         super.before();
     }
 
@@ -29,7 +29,7 @@ public class HystrixFeignTracingTest extends AbstractFeignTracingTest {
     protected Feign getClient() {
         return feign  = HystrixFeign.builder()
                 .client(new TracingClient(new Client.Default(null, null), mockTracer))
-                .retryer(new Retryer.Default(100, SECONDS.toMillis(1), AbstractFeignTracingTest.NUMBER_OF_RETRIES))
+                .retryer(new Retryer.Default(100, SECONDS.toMillis(1), FeignTracingTest.NUMBER_OF_RETRIES))
                 .build();
     }
 }

@@ -11,9 +11,9 @@ import com.netflix.hystrix.strategy.executionhook.HystrixCommandExecutionHook;
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisher;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
 
-import io.opentracing.Span;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.contrib.spanmanager.SpanManager;
+import io.opentracing.ActiveSpan;
+import io.opentracing.NoopActiveSpanSource;
+import io.opentracing.Tracer;
 
 /**
  * @author Pavol Loffay
@@ -21,14 +21,15 @@ import io.opentracing.contrib.spanmanager.SpanManager;
 public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
     private static Logger log = Logger.getLogger(TracingConcurrencyStrategy.class.getName());
 
-    private SpanManager spanManager = DefaultSpanManager.getInstance();
     private HystrixConcurrencyStrategy delegateStrategy;
+    private Tracer tracer;
 
-    public static TracingConcurrencyStrategy register() {
-        return new TracingConcurrencyStrategy();
+    public static TracingConcurrencyStrategy register(Tracer tracer) {
+        return new TracingConcurrencyStrategy(tracer);
     }
 
-    private TracingConcurrencyStrategy() {
+    private TracingConcurrencyStrategy(Tracer tracer) {
+        this.tracer = tracer;
         try {
             this.delegateStrategy = HystrixPlugins.getInstance().getConcurrencyStrategy();
             if (this.delegateStrategy instanceof TracingConcurrencyStrategy) {
@@ -70,20 +71,22 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
 
     private class OpenTracingHystrixCallable<S> implements Callable<S> {
         private Callable<S> delegateCallable;
-        private Span parent;
+        private ActiveSpan parentSpan;
 
         public OpenTracingHystrixCallable(Callable<S> delegate) {
             this.delegateCallable = delegate;
-            this.parent = spanManager.current().getSpan();
+            parentSpan = tracer.activeSpan();
         }
 
         @Override
         public S call() throws Exception {
-            SpanManager.ManagedSpan activate = spanManager.activate(parent);
+            ActiveSpan.Continuation continuation = parentSpan != null
+                    ? parentSpan.capture() : NoopActiveSpanSource.NoopContinuation.INSTANCE;
+            ActiveSpan activeHere = continuation.activate();
             try {
                 return this.delegateCallable.call();
             } finally {
-                activate.deactivate();
+                activeHere.deactivate();
             }
         }
     }

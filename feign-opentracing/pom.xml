@@ -15,9 +15,8 @@
       <artifactId>opentracing-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-spanmanager</artifactId>
-      <version>${version.io.opentracing.contrib-opentracing-spanmanager}</version>
+      <groupId>io.opentracing</groupId>
+      <artifactId>opentracing-util</artifactId>
     </dependency>
 
     <dependency>
@@ -46,6 +45,12 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-okhttp</artifactId>
       <version>${version.io.github.openfeign}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>${version.org.awaitility-awaitility}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

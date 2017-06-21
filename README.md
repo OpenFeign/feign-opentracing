@@ -1,7 +1,7 @@
 [![Build Status][ci-img]][ci] [![Released Version][maven-img]][maven]
 
 # OpenTracing Feign Instrumentation
-OpenTracing instrumentation for Feign client. This instrumentation creates client span for each outgoing request.
+OpenTracing instrumentation for Feign client. This instrumentation creates a client span for each outgoing request.
 
 ## Configuration & Usage
 

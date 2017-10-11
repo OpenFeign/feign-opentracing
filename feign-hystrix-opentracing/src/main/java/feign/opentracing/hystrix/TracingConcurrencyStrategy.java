@@ -1,5 +1,9 @@
 package feign.opentracing.hystrix;
 
+import io.opentracing.Scope;
+import io.opentracing.ScopeManager;
+import io.opentracing.Span;
+import io.opentracing.noop.NoopSpan;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,8 +15,6 @@ import com.netflix.hystrix.strategy.executionhook.HystrixCommandExecutionHook;
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisher;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
 
-import io.opentracing.ActiveSpan;
-import io.opentracing.NoopActiveSpanSource;
 import io.opentracing.Tracer;
 
 /**
@@ -36,10 +38,13 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
                 return;
             }
 
-            HystrixCommandExecutionHook commandExecutionHook = HystrixPlugins.getInstance().getCommandExecutionHook();
+            HystrixCommandExecutionHook commandExecutionHook =
+                HystrixPlugins.getInstance().getCommandExecutionHook();
             HystrixEventNotifier eventNotifier = HystrixPlugins.getInstance().getEventNotifier();
-            HystrixMetricsPublisher metricsPublisher = HystrixPlugins.getInstance().getMetricsPublisher();
-            HystrixPropertiesStrategy propertiesStrategy = HystrixPlugins.getInstance().getPropertiesStrategy();
+            HystrixMetricsPublisher metricsPublisher =
+                HystrixPlugins.getInstance().getMetricsPublisher();
+            HystrixPropertiesStrategy propertiesStrategy =
+                HystrixPlugins.getInstance().getPropertiesStrategy();
 
             HystrixPlugins.reset();
             HystrixPlugins.getInstance().registerConcurrencyStrategy(this);
@@ -49,7 +54,7 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
             HystrixPlugins.getInstance().registerPropertiesStrategy(propertiesStrategy);
         } catch (Exception ex) {
             log.log(Level.SEVERE, "Failed to register " + TracingConcurrencyStrategy.class +
-                            ", to HystrixPlugins", ex);
+                ", to HystrixPlugins", ex);
         }
     }
 
@@ -60,33 +65,37 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
         }
 
         Callable<T> delegateCallable = this.delegateStrategy == null ? callable :
-                this.delegateStrategy.wrapCallable(callable);
+            this.delegateStrategy.wrapCallable(callable);
 
         if (delegateCallable instanceof OpenTracingHystrixCallable) {
             return delegateCallable;
         }
 
-        return new OpenTracingHystrixCallable<>(delegateCallable);
+        if (tracer.scopeManager().active() == null) {
+            return delegateCallable;
+        }
+
+        return new OpenTracingHystrixCallable<>(delegateCallable, tracer.scopeManager(), tracer.scopeManager().active().span());
     }
 
-    private class OpenTracingHystrixCallable<S> implements Callable<S> {
-        private Callable<S> delegateCallable;
-        private ActiveSpan parentSpan;
+    private static class OpenTracingHystrixCallable<S> implements Callable<S> {
+        private final Callable<S> delegateCallable;
+        private ScopeManager scopeManager;
+        private Span span;
 
-        public OpenTracingHystrixCallable(Callable<S> delegate) {
+        public OpenTracingHystrixCallable(Callable<S> delegate, ScopeManager scopeManager, Span span) {
+            if (span == null || delegate == null || scopeManager == null) {
+                throw new NullPointerException();
+            }
             this.delegateCallable = delegate;
-            parentSpan = tracer.activeSpan();
+            this.scopeManager = scopeManager;
+            this.span = span;
         }
 
         @Override
         public S call() throws Exception {
-            ActiveSpan.Continuation continuation = parentSpan != null
-                    ? parentSpan.capture() : NoopActiveSpanSource.NoopContinuation.INSTANCE;
-            ActiveSpan activeHere = continuation.activate();
-            try {
-                return this.delegateCallable.call();
-            } finally {
-                activeHere.deactivate();
+            try (Scope scope = scopeManager.activate(span, false)) {
+                return delegateCallable.call();
             }
         }
     }

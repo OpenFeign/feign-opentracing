@@ -3,7 +3,6 @@ package feign.opentracing.hystrix;
 import io.opentracing.Scope;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
-import io.opentracing.noop.NoopSpan;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;

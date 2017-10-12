@@ -1,5 +1,6 @@
 package feign.opentracing;
 
+import io.opentracing.Scope;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,6 @@ import java.util.logging.Logger;
 import feign.Client;
 import feign.Request;
 import feign.Response;
-import io.opentracing.ActiveSpan;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
@@ -54,25 +54,25 @@ public class TracingClient implements Client {
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
-        ActiveSpan span = null;
+        Scope scope = null;
         try {
-            span = tracer.buildSpan(request.method())
+            scope = tracer.buildSpan(request.method())
                     .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
-                    .startActive();
+                    .startActive(true);
 
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
                 try {
-                    spanDecorator.onRequest(request, options, span);
+                    spanDecorator.onRequest(request, options, scope.span());
                 } catch (Exception ex) {
                     log.log(Level.SEVERE, "Exception during decorating span", ex);
                 }
             }
 
-            request = inject(span.context(), request);
+            request = inject(scope.span().context(), request);
             Response response = delegate.execute(request, options);
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
                 try {
-                    spanDecorator.onResponse(response, options, span);
+                    spanDecorator.onResponse(response, options, scope.span());
                 } catch (Exception ex) {
                     log.log(Level.SEVERE, "Exception during decorating span", ex);
                 }
@@ -82,7 +82,7 @@ public class TracingClient implements Client {
         } catch (Exception ex) {
             for (FeignSpanDecorator spanDecorator: spanDecorators) {
                 try {
-                    spanDecorator.onError(ex, request, span);
+                    spanDecorator.onError(ex, request, scope.span());
                 } catch (Exception exDecorator) {
                     log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
                 }
@@ -90,8 +90,8 @@ public class TracingClient implements Client {
 
             throw ex;
         } finally {
-            if (span != null) {
-                span.deactivate();
+            if (scope != null) {
+                scope.close();
             }
         }
     }

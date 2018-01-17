@@ -117,7 +117,7 @@ public class FeignTracingTest {
     public void testParentSpanFromSpanManager() throws InterruptedException {
         {
             Scope scope = mockTracer.buildSpan("parent")
-                    .startActive();
+                    .startActive(true);
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(200));

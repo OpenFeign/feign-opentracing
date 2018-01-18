@@ -15,3 +15,9 @@ target
 
 # includes
 !.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse
+.project
+.classpath
+.settings
+

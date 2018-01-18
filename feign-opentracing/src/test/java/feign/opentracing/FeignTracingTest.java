@@ -2,6 +2,8 @@ package feign.opentracing;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import io.opentracing.Scope;
+import io.opentracing.util.ThreadLocalScopeManager;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -20,11 +22,9 @@ import feign.RequestLine;
 import feign.Retryer;
 import feign.Target;
 import feign.okhttp.OkHttpClient;
-import io.opentracing.ActiveSpan;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-import io.opentracing.util.ThreadLocalActiveSpanSource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -36,7 +36,7 @@ public class FeignTracingTest {
 
     protected static final int NUMBER_OF_RETRIES = 2;
 
-    protected MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(), MockTracer.Propagator.TEXT_MAP);
+    protected MockTracer mockTracer = new MockTracer(new ThreadLocalScopeManager(), MockTracer.Propagator.TEXT_MAP);
     protected MockWebServer mockWebServer = new MockWebServer();
     protected Feign feign = getClient();
 
@@ -116,8 +116,8 @@ public class FeignTracingTest {
     @Test
     public void testParentSpanFromSpanManager() throws InterruptedException {
         {
-            ActiveSpan activeSpan = mockTracer.buildSpan("parent")
-                    .startActive();
+            Scope scope = mockTracer.buildSpan("parent")
+                    .startActive(true);
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(200));
@@ -126,7 +126,7 @@ public class FeignTracingTest {
                     entity = feign.<StringEntityRequest>newInstance(new Target.HardCodedTarget(StringEntityRequest.class,
                     mockWebServer.url("/foo").toString()));
             entity.get();
-            activeSpan.deactivate();
+            scope.close();
         }
         Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
 

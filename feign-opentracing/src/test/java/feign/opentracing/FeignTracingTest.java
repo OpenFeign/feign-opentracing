@@ -3,6 +3,7 @@ package feign.opentracing;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.util.ThreadLocalScopeManager;
 import java.io.IOException;
 import java.util.Collections;
@@ -116,17 +117,21 @@ public class FeignTracingTest {
     @Test
     public void testParentSpanFromSpanManager() throws InterruptedException {
         {
-            Scope scope = mockTracer.buildSpan("parent")
-                    .startActive(true);
+            Span span = mockTracer.buildSpan("parent")
+                    .start();
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(200));
 
-            StringEntityRequest
-                    entity = feign.<StringEntityRequest>newInstance(new Target.HardCodedTarget(StringEntityRequest.class,
-                    mockWebServer.url("/foo").toString()));
-            entity.get();
-            scope.close();
+            try (Scope scope = mockTracer.activateSpan(span)) {
+                StringEntityRequest
+                    entity = feign.<StringEntityRequest>newInstance(
+                    new Target.HardCodedTarget(StringEntityRequest.class,
+                        mockWebServer.url("/foo").toString()));
+                entity.get();
+            } finally {
+                span.finish();
+            }
         }
         Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
 

@@ -70,11 +70,11 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
             return delegateCallable;
         }
 
-        if (tracer.scopeManager().active() == null) {
+        if (tracer.scopeManager().activeSpan() == null) {
             return delegateCallable;
         }
 
-        return new OpenTracingHystrixCallable<>(delegateCallable, tracer.scopeManager(), tracer.scopeManager().active().span());
+        return new OpenTracingHystrixCallable<>(delegateCallable, tracer.scopeManager(), tracer.activeSpan());
     }
 
     private static class OpenTracingHystrixCallable<S> implements Callable<S> {

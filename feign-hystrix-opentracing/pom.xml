@@ -23,6 +23,7 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-hystrix</artifactId>
       <version>${version.io.github.openfeign}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>

@@ -93,7 +93,7 @@ public class TracingConcurrencyStrategy extends HystrixConcurrencyStrategy {
 
         @Override
         public S call() throws Exception {
-            try (Scope scope = scopeManager.activate(span, false)) {
+            try (Scope scope = scopeManager.activate(span)) {
                 return delegateCallable.call();
             }
         }

@@ -28,7 +28,7 @@ public class HystrixFeignTracingTest extends FeignTracingTest {
     @Override
     protected Feign getClient() {
         return feign  = HystrixFeign.builder()
-                .client(new TracingClient(new Client.Default(null, null), mockTracer))
+                .client(tracingClient(new Client.Default(null, null)))
                 .retryer(new Retryer.Default(100, SECONDS.toMillis(1), FeignTracingTest.NUMBER_OF_RETRIES))
                 .build();
     }

@@ -2,6 +2,7 @@ package feign.opentracing;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import feign.*;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.ThreadLocalScopeManager;
@@ -17,11 +18,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import feign.Feign;
-import feign.Headers;
-import feign.RequestLine;
-import feign.Retryer;
-import feign.Target;
 import feign.okhttp.OkHttpClient;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
@@ -36,15 +32,26 @@ import okhttp3.mockwebserver.RecordedRequest;
 public class FeignTracingTest {
 
     protected static final int NUMBER_OF_RETRIES = 2;
+    protected static final String SPAN_NAME = "any_span_name";
 
     protected MockTracer mockTracer = new MockTracer(new ThreadLocalScopeManager(), MockTracer.Propagator.TEXT_MAP);
     protected MockWebServer mockWebServer = new MockWebServer();
     protected Feign feign = getClient();
 
+    protected Client tracingClient(Client client) {
+        return new TracingClient(client, mockTracer,
+                Collections.<FeignSpanDecorator>singletonList(new feign.opentracing.FeignSpanDecorator.StandardTags())){
+
+            @Override
+            public String withSpanName(Request request) {
+                return SPAN_NAME;
+            }
+        };
+    }
+
     protected Feign getClient() {
         return Feign.builder()
-                .client(new TracingClient(new OkHttpClient(), mockTracer,
-                        Collections.<FeignSpanDecorator>singletonList(new FeignSpanDecorator.StandardTags())))
+                .client(tracingClient(new OkHttpClient()))
                 .retryer(new Retryer.Default(100, SECONDS.toMillis(1), NUMBER_OF_RETRIES))
                 .build();
     }
@@ -82,6 +89,7 @@ public class FeignTracingTest {
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals(SPAN_NAME, mockSpan.operationName());
         Assert.assertEquals(5, mockSpan.tags().size());
         Assert.assertNotNull(mockSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals(Tags.SPAN_KIND_CLIENT, mockSpan.tags().get(Tags.SPAN_KIND.getKey()));

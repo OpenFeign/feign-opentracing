@@ -55,7 +55,7 @@ public class TracingClient implements Client {
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
-        Span span = tracer.buildSpan(request.method())
+        Span span = tracer.buildSpan(withSpanName(request))
             .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
             .start();
 
@@ -92,6 +92,10 @@ public class TracingClient implements Client {
         } finally {
             span.finish();
         }
+    }
+
+    public String withSpanName(Request request){
+        return request.httpMethod().name();
     }
 
     private Request inject(SpanContext spanContext, Request request) {

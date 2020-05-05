@@ -2,8 +2,11 @@ package feign.opentracing;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.opentracing.propagation.TextMap;
 
@@ -32,7 +35,23 @@ class HttpHeadersInjectAdapter implements TextMap {
             headers.put(key, values);
         }
 
-        values.add(value);
+        try {
+            values.add(value);
+        } catch (UnsupportedOperationException ex) {
+            if (values instanceof List) {
+                // Handle unmodifiable Lists
+                List<String> list = new ArrayList<>(values);
+                list.add(value);
+                headers.put(key, list);
+            } else if (values instanceof Set) {
+                // Handle unmodifiable Sets
+                Set<String> set = new HashSet<>(values);
+                set.add(value);
+                headers.put(key, set);
+            } else {
+                throw ex;
+            }
+        }
     }
 
     @Override

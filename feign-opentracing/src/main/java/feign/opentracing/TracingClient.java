@@ -97,7 +97,7 @@ public class TracingClient implements Client {
     private Request inject(SpanContext spanContext, Request request) {
         Map<String, Collection<String>> headersWithTracingContext = new HashMap<>(request.headers());
         tracer.inject(spanContext, Format.Builtin.HTTP_HEADERS, new HttpHeadersInjectAdapter(headersWithTracingContext));
-        return request.create(request.method(), request.url(), headersWithTracingContext,request.body(),
-                request.charset());
+        return Request.create(request.httpMethod(), request.url(), headersWithTracingContext,request.body(),
+                request.charset(), request.requestTemplate());
     }
 }

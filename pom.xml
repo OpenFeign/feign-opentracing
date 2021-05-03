@@ -4,7 +4,7 @@
 
   <groupId>io.github.openfeign.opentracing</groupId>
   <artifactId>feign-opentracing-parent</artifactId>
-  <version>0.4.2-SNAPSHOT</version>
+  <version>0.4.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
